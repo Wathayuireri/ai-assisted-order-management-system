@@ -2,12 +2,21 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+
 class User(AbstractUser):
     ROLE_CHOICES = [('customer', 'Customer'), ('admin', 'Admin')]
 
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='customer')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.role = 'admin'
+        super().save(*args, **kwargs)
 
 
 class CustomerProfile(models.Model):
