@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'catalogue',
+    'cart',
+    'orders',
+    'payments',
+    'contact',
 ]
 
 MIDDLEWARE = [
@@ -154,3 +158,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'simulated')
+PAYMENT_PENDING_MINUTES = 10
