@@ -10,11 +10,13 @@ class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+    authentication_classes = []
 
 
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True).select_related('category')
@@ -38,3 +40,4 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_active=True).select_related('category')
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []

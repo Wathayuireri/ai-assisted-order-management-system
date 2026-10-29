@@ -152,6 +152,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'contact': '10/hour',
+    },
 }
 
 SIMPLE_JWT = {
@@ -161,3 +164,5 @@ SIMPLE_JWT = {
 
 PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'simulated')
 PAYMENT_PENDING_MINUTES = 10
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

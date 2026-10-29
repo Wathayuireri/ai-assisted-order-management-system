@@ -37,12 +37,27 @@ class OrderSerializer(serializers.ModelSerializer):
     status_label = serializers.CharField(source='get_status_display', read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     history = OrderStatusHistorySerializer(many=True, read_only=True)
+    payment_status = serializers.SerializerMethodField()
+    is_paid = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'reference', 'status', 'status_label', 'contact_phone',
-                  'notes', 'total_amount', 'created_at', 'items', 'history']
+                  'notes', 'total_amount', 'created_at', 'payment_status',
+                  'is_paid', 'items', 'history']
 
+    def get_payment_status(self, obj):
+        payments = list(obj.payments.all())
+        if any(payment.status == 'success' for payment in payments):
+            return 'paid'
+        if any(payment.status == 'pending' for payment in payments):
+            return 'pending'
+        if payments:
+            return 'failed'
+        return 'unpaid'
+
+    def get_is_paid(self, obj):
+        return self.get_payment_status(obj) == 'paid'
 
 class AdminOrderSerializer(OrderSerializer):
     customer = serializers.SerializerMethodField()
