@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useCart } from '../cart/CartContext'
 
 const tab = ({ isActive }) =>
   `border-b-4 px-1 py-5 ${
@@ -8,6 +9,7 @@ const tab = ({ isActive }) =>
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { cart } = useCart()
   const isCustomer = user?.role === 'customer'
   const isAdmin = user?.role === 'admin'
 
@@ -24,7 +26,11 @@ export default function Layout() {
           <NavLink to="/contact" className={tab}>Contact us</NavLink>
           {isAdmin && <NavLink to="/admin" className={tab}>Admin</NavLink>}
           <span className="flex-1" />
-          {isCustomer && <NavLink to="/cart" className={tab}>Cart</NavLink>}
+          {isCustomer && (
+            <NavLink to="/cart" className={tab}>
+              Cart ({cart?.item_count ?? 0})
+            </NavLink>
+          )}
           {user ? (
             <>
               <span className="hidden text-sm sm:inline">{user.first_name || user.email}</span>
