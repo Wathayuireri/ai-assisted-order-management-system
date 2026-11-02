@@ -14,7 +14,7 @@ export default function Layout() {
   const isAdmin = user?.role === 'admin'
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="bg-brand-dark text-white">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-4">
           <Link to="/" className="py-4 text-xl font-bold">
@@ -22,13 +22,14 @@ export default function Layout() {
           </Link>
           <NavLink to="/" end className={tab}>Home</NavLink>
           <NavLink to="/products" className={tab}>Products</NavLink>
-          {isCustomer && <NavLink to="/orders" className={tab}>My orders</NavLink>}
+          <NavLink to="/about" className={tab}>About us</NavLink>
           <NavLink to="/contact" className={tab}>Contact us</NavLink>
+          {isCustomer && <NavLink to="/orders" className={tab}>My orders</NavLink>}
           {isAdmin && <NavLink to="/admin" className={tab}>Admin</NavLink>}
           <span className="flex-1" />
-          {isCustomer && (
+          {!isAdmin && (
             <NavLink to="/cart" className={tab}>
-              Cart ({cart?.item_count ?? 0})
+              Cart{isCustomer ? ` (${cart?.item_count ?? 0})` : ''}
             </NavLink>
           )}
           {user ? (
@@ -51,9 +52,21 @@ export default function Layout() {
           )}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <Outlet />
       </main>
+
+      <footer className="bg-brand-dark text-sky-100">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm">
+          <p>Crystal Chemicals, Nairobi. Chemicals, cleaning products and disinfectants.</p>
+          <div className="flex gap-5">
+            <Link to="/products" className="hover:text-white">Products</Link>
+            <Link to="/about" className="hover:text-white">About us</Link>
+            <Link to="/contact" className="hover:text-white">Contact us</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

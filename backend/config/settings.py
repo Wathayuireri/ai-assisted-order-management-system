@@ -28,8 +28,7 @@ SECRET_KEY = 'django-insecure-1fp6df+3wuo&0t!)ld0j$8ju4!c*n)*4%$q6&!sl*@0s7238d7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io']
 
 # Application definition
 
@@ -47,6 +46,7 @@ INSTALLED_APPS = [
     'orders',
     'payments',
     'contact',
+    'assistant',  # [CHANGE 1] Added after 'contact'
 ]
 
 MIDDLEWARE = [
@@ -94,6 +94,16 @@ DATABASES = {
     }
 }
 
+# [CHANGE 2] Read-only alias for the assistant app.
+# Falls back to default creds in dev; set DB_READONLY_USER / DB_READONLY_PASSWORD in .env
+# to actually use the MySQL readonly account (crystal_readonly).
+DATABASES['readonly'] = {
+    **DATABASES['default'],
+    'USER': os.getenv('DB_READONLY_USER', os.getenv('DB_USER')),
+    'PASSWORD': os.getenv('DB_READONLY_PASSWORD', os.getenv('DB_PASSWORD')),
+    'TEST': {'MIRROR': 'default'},
+}
+
 AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = '/media/'
@@ -123,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'  # [CHANGE 3] Was 'UTC'
 
 USE_I18N = True
 
@@ -154,6 +164,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'contact': '10/hour',
+        'assistant': '30/hour',  # [CHANGE 4] Added
     },
 }
 
@@ -164,5 +175,19 @@ SIMPLE_JWT = {
 
 PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'simulated')
 PAYMENT_PENDING_MINUTES = 10
-
+DARAJA_BASE_URL = os.getenv('DARAJA_BASE_URL', 'https://sandbox.safaricom.co.ke')
+DARAJA_CONSUMER_KEY = os.getenv('DARAJA_CONSUMER_KEY', '')
+DARAJA_CONSUMER_SECRET = os.getenv('DARAJA_CONSUMER_SECRET', '')
+DARAJA_SHORTCODE = os.getenv('DARAJA_SHORTCODE', '')
+DARAJA_PASSKEY = os.getenv('DARAJA_PASSKEY', '')
+DARAJA_CALLBACK_BASE_URL = os.getenv('DARAJA_CALLBACK_BASE_URL', '')
+DARAJA_CALLBACK_SECRET = os.getenv('DARAJA_CALLBACK_SECRET', '')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# [CHANGE 5] AI assistant + inventory configuration
+AI_PROVIDER = os.getenv('AI_PROVIDER', 'mock')
+AI_API_KEY = os.getenv('AI_API_KEY', '')
+AI_MODEL = os.getenv('AI_MODEL', 'claude-haiku-5-5')
+AI_BASE_URL = os.getenv('AI_BASE_URL', '')
+AI_TIMEOUT = 30
+LOW_STOCK_LEVEL = 5

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
@@ -12,7 +12,8 @@ export default function Products() {
   const { addItem } = useCart()
   const navigate = useNavigate()
   const [categories, setCategories] = useState([])
-  const [category, setCategory] = useState('')
+    const [params] = useSearchParams()
+  const [category, setCategory] = useState(params.get('category') || '')
   const [search, setSearch] = useState('')
   const [query, setQuery] = useState('')
   const [products, setProducts] = useState([])

@@ -7,6 +7,7 @@ import AdminChat from "./admin/AdminChat";
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import About from './pages/About' // <--- ADDED BACK
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Contact from './pages/Contact'
@@ -30,27 +31,31 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/about" element={<About />} /> {/* <--- ADDED BACK */}
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/cart" element={customer(<Cart />)} />
-        <Route path="/checkout" element={customer(<Checkout />)} />
+        <Route path="/checkout" element={(<Checkout />)} />
         <Route path="/orders" element={customer(<Orders />)} />
         <Route path="/orders/:id" element={customer(<OrderDetail />)} />
-       <Route 
-  path="/admin" 
-  element={
-    <ProtectedRoute role="admin">
-      <AdminLayout />
-    </ProtectedRoute>
-  }
->
-  <Route index element={<AdminDashboard />} />
-  <Route path="products" element={<AdminProducts />} />
-  <Route path="orders" element={<AdminOrders />} />
-  <Route path="messages" element={<AdminMessages />} />
-  <Route path="chat" element={<AdminChat />} />
-</Route>
+        
+        {/* Your new Admin Layout block */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="messages" element={<AdminMessages />} />
+          <Route path="chat" element={<AdminChat />} />
+        </Route>
+        
         <Route path="*" element={<Placeholder title="Page not found" />} />
       </Route>
     </Routes>

@@ -15,7 +15,7 @@ export default function PaymentPanel({ order, onPaid }) {
   const simulated = payment?.checkout_request_id?.startsWith('SIM-')
   const pending = payment?.status === 'pending'
 
-  // For a real M-Pesa payment, check the result every 3 seconds.
+  // For a real M-Pesa payment, look for the result every 3 seconds.
   useEffect(() => {
     if (!pending || simulated) return undefined
     const timer = setInterval(async () => {
@@ -62,11 +62,25 @@ export default function PaymentPanel({ order, onPaid }) {
     }
   }
 
+  async function checkNow() {
+    setError('')
+    setBusy(true)
+    try {
+      const updated = await api(`/payments/${payment.id}/check/`, { method: 'POST' })
+      setPayment(updated)
+      if (updated.status === 'success') onPaid?.()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (payment?.status === 'success') {
     return (
       <div className="rounded-xl bg-green-50 p-4 text-green-800">
         <p className="font-semibold">Payment received. Thank you!</p>
-        <p className="text-sm">M-Pesa receipt: {payment.mpesa_receipt}</p>
+        {payment.mpesa_receipt && <p className="text-sm">M-Pesa receipt: {payment.mpesa_receipt}</p>}
       </div>
     )
   }
@@ -92,6 +106,9 @@ export default function PaymentPanel({ order, onPaid }) {
             <p className="text-sm text-slate-700">
               Enter your M-Pesa PIN on the prompt we sent to {payment.phone}. This page updates by itself.
             </p>
+            <button disabled={busy} onClick={checkNow} className={`${secondary} mt-3`}>
+              {busy ? 'Checking...' : 'I have paid, check now'}
+            </button>
           </>
         )}
         <div className="mt-3"><Alert>{error}</Alert></div>
