@@ -93,17 +93,12 @@ DATABASES = {
         'OPTIONS': {'charset': 'utf8mb4'},
     }
 }
-
-# [CHANGE 2] Read-only alias for the assistant app.
-# Falls back to default creds in dev; set DB_READONLY_USER / DB_READONLY_PASSWORD in .env
-# to actually use the MySQL readonly account (crystal_readonly).
 DATABASES['readonly'] = {
     **DATABASES['default'],
-    'USER': os.getenv('DB_READONLY_USER', os.getenv('DB_USER')),
-    'PASSWORD': os.getenv('DB_READONLY_PASSWORD', os.getenv('DB_PASSWORD')),
+    'USER': os.getenv('DB_USER'),        # <-- Forces it to use your main user
+    'PASSWORD': os.getenv('DB_PASSWORD'),# <-- Forces it to use your main password
     'TEST': {'MIRROR': 'default'},
 }
-
 AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = '/media/'

@@ -35,9 +35,9 @@ class BaseAssistantView(APIView):
             logger.exception('AI request failed')
             return Response({'detail': UNAVAILABLE}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        AIConversationLog.objects.create(
-            user=request.user, assistant=self.assistant,
-            question=message, answer=result['answer'])
+        #AIConversationLog.objects.create(
+            #user=request.user, assistant=self.assistant,
+            #question=message, answer=result['answer'])
         return Response({**result, 'ai_generated': True})
 
 

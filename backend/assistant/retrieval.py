@@ -25,7 +25,7 @@ def relevant_products(question):
 
     words = keywords(question)
 
-    def score(product):
+    def score(product): 
         haystack = ' '.join([
             product.name, product.category.name, product.description, product.intended_use,
         ]).lower()
