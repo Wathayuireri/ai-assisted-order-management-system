@@ -1,59 +1,73 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 
-export default function AdminMessages() {
-  const [messages, setMessages] = useState([]);
+export default function AdminOrders() {
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const fetchMessages = () => {
-    // We added /admin/ to match your urls.py
-    api("/contact/admin/") 
-      .then(res => setMessages(res || []))
-      .catch(err => console.error(err))
+  useEffect(() => {
+    // FIXED: Added /admin/ to the path to match Django's urls.py
+    api("/orders/admin/")
+      .then((res) => {
+        setOrders(res || []);
+        setError("");
+      })
+      .catch((err) => {
+        console.error("Failed to load orders:", err);
+        setError(err.message || "Failed to load orders");
+      })
       .finally(() => setLoading(false));
-  };
+  }, []);
 
-  useEffect(() => { fetchMessages(); }, []);
-
-  const toggleReadStatus = (id, currentStatus) => {
-    // This hits /api/contact/admin/<id>/ which we saw in your urls.py
-    api(`/contact/admin/${id}/`, { 
-      method: "PATCH", 
-      body: { is_read: !currentStatus } 
-    }).then(fetchMessages)
-      .catch(err => alert(err.message));
-  };
-
-  if (loading) return <div className="p-4 text-gray-500">Loading messages...</div>;
+  if (loading) return <div className="p-4 text-gray-500">Loading orders...</div>;
+  
+  if (error) return <div className="p-4 text-red-600 font-bold">Error: {error}</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-slate-800">Customer Messages</h1>
+      <h1 className="text-3xl font-bold text-slate-800">Orders Management</h1>
       
-      <div className="grid gap-4">
-        {messages.length === 0 ? (
-           <p className="text-gray-500">No messages yet.</p>
-        ) : (
-          messages.map(msg => (
-            <div key={msg.id} className={`p-6 rounded-xl shadow-sm border transition-colors ${msg.is_read ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-300'}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="font-bold text-slate-800">
-                    {msg.name} <span className="text-sm font-normal text-gray-500">({msg.email})</span>
-                  </p>
-                </div>
-                <button 
-                  onClick={() => toggleReadStatus(msg.id, msg.is_read)}
-                  className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors ${msg.is_read ? 'bg-gray-200 text-gray-600 hover:bg-gray-300' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
-                >
-                  {msg.is_read ? 'Mark as Unread' : 'Mark as Read'}
-                </button>
-              </div>
-              <p className="text-slate-600 mt-4">{msg.message}</p>
-            </div>
-          ))
-        )}
-      </div>
+      {orders.length === 0 ? (
+        <p className="text-gray-500">No orders found. Place an order as a customer to see it here.</p>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{order.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    KES {order.total_amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                        order.status === 'processing' ? 'bg-blue-100 text-blue-800' : 
+                        order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                        'bg-red-100 text-red-800'}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

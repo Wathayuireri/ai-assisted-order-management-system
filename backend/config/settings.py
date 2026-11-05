@@ -186,3 +186,6 @@ AI_MODEL = os.getenv('AI_MODEL', 'claude-haiku-5-5')
 AI_BASE_URL = os.getenv('AI_BASE_URL', '')
 AI_TIMEOUT = 30
 LOW_STOCK_LEVEL = 5
+
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')

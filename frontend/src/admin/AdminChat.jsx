@@ -1,24 +1,41 @@
 import { useState } from "react";
+import { api } from '../api/client'; 
 
 export default function AdminChat() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Hello Admin! I am your AI assistant. How can I help you manage the store today?" }
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     
-    // Add user message
-    const newMessages = [...messages, { role: "user", text: input }];
+    const userMessage = input;
+    const newMessages = [...messages, { role: "user", text: userMessage }];
     setMessages(newMessages);
     setInput("");
+    setLoading(true);
 
-    // Simulate AI response (You will replace this with an actual API call later)
-    setTimeout(() => {
-      setMessages([...newMessages, { role: "assistant", text: "I'm a simulated AI right now. Connect my backend endpoint to make me real!" }]);
-    }, 1000);
+    try {
+      // 1. Changed URL to /admin/
+      const data = await api('/assistant/admin/', {
+        method: 'POST',
+        body: { 
+            message: userMessage,
+            history: messages.slice(-4) // Sending history helps the AI remember the conversation
+        }
+      });
+
+      // 2. Changed 'data.reply' to 'data.answer' to match Django's response
+      setMessages((prev) => [...prev, { role: "assistant", text: data.answer }]);
+    } catch (error) {
+      setMessages((prev) => [...prev, { role: "assistant", text: "Error: Could not connect to the AI. Please try again." }]);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +52,13 @@ export default function AdminChat() {
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-slate-500 p-3 rounded-xl italic">
+              AI is typing...
+            </div>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSend} className="p-4 border-t flex gap-2">
@@ -44,8 +68,13 @@ export default function AdminChat() {
           onChange={e => setInput(e.target.value)}
           placeholder="Ask the AI..." 
           className="flex-1 border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading}
         />
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+        >
           Send
         </button>
       </form>

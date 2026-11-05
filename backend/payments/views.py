@@ -1,3 +1,8 @@
+import stripe
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
+
 import hmac
 import uuid
 from datetime import timedelta
@@ -217,3 +222,94 @@ class AdminPaymentListView(generics.ListAPIView):
         if status_value in dict(Payment.STATUS_CHOICES):
             queryset = queryset.filter(status=status_value)
         return queryset
+
+    # --- STRIPE INTEGRATION ---
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+class CreateStripeSessionView(APIView):
+    """Creates a Stripe checkout session and returns the URL."""
+    permission_classes = [IsCustomer]
+
+    def post(self, request):
+        order_id = request.data.get('order')
+        
+        # 1. Find the order and lock it (prevent double payment)
+        with transaction.atomic():
+            order = get_object_or_404(
+                Order.objects.select_for_update(), 
+                pk=order_id, user=request.user
+            )
+            
+            if order.payments.filter(status='success').exists():
+                return Response({'detail': 'This order is already paid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 2. Create a pending payment record in your database
+            payment = Payment.objects.create(
+                order=order,
+                phone='CARD', # Since it's a card, we don't have an M-PESA phone number
+                amount=order.total_amount,
+                status='pending'
+            )
+
+        # 3. Create the Stripe Session
+        try:
+            session = stripe.checkout.Session.create(
+                line_items=[{
+                    'price_data': {
+                        'currency': 'kes', # Or 'usd' depending on your account
+                        'product_data': {'name': f'Order {order.reference}'},
+                        'unit_amount': int(order.total_amount * 100), # Stripe uses cents
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                # When Stripe finishes, redirect back to React
+                success_url=f'http://localhost:5173/checkout?success=true&order_id={order.id}',
+                cancel_url='http://localhost:5173/checkout?cancelled=true',
+                # This metadata is crucial for the webhook to find the payment
+                metadata={'payment_id': payment.id} 
+            )
+            return Response({'url': session.url})
+        except Exception as e:
+            payment.status = 'failed'
+            payment.result_description = str(e)[:200]
+            payment.save()
+            return Response({'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeWebhookView(APIView):
+    """Listens for Stripe's secure webhook to confirm the payment."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        endpoint_secret = 'whsec_your_webhook_secret' # Get this from Stripe CLI or Dashboard
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
+            )
+        except ValueError:
+            return Response(status=400)
+        except stripe.error.SignatureVerificationError:
+            return Response(status=400)
+
+        # Handle the successful checkout
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            payment_id = session['metadata']['payment_id']
+            
+            with transaction.atomic():
+                payment = Payment.objects.select_for_update().get(pk=payment_id)
+                if payment.status == 'pending':
+                    payment.status = 'success'
+                    payment.mpesa_receipt = session['payment_intent'] # Use the Stripe intent as receipt
+                    payment.result_description = 'Stripe Card Payment'
+                    payment.completed_at = timezone.now()
+                    payment.save()
+
+        return Response({'status': 'success'})
