@@ -6,7 +6,8 @@ from .models import Category, Product
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description']
+        # 'image' is added here so the API sends it to React
+        fields = ['id', 'name', 'description', 'image']
 
 
 class ProductSerializer(serializers.ModelSerializer):

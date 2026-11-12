@@ -8,13 +8,24 @@ export default function ProductCard({ product, role, busy, onAdd }) {
   return (
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4">
       <Link to={`/products/${product.id}`} className="block">
+        
+        {/* UPDATED IMAGE LOGIC HERE */}
         {product.image ? (
-          <img src={product.image} alt={product.name} className="mb-3 h-28 w-full rounded-lg object-cover" />
+          <img 
+            src={`http://127.0.0.1:8000${product.image}`} 
+            alt={product.name} 
+            className="mb-3 h-28 w-full rounded-lg object-cover bg-gray-100" 
+            onError={(e) => { 
+              e.target.onerror = null; 
+              e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; 
+            }} 
+          />
         ) : (
           <div className="mb-3 flex h-28 items-center justify-center rounded-lg bg-sky-100 text-sm text-slate-600">
             No image
           </div>
         )}
+        
         <p className="font-semibold">{product.name}</p>
       </Link>
       <p className="text-sm text-slate-600">{product.pack_size}</p>

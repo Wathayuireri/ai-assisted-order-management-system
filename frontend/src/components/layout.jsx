@@ -14,10 +14,13 @@ export default function Layout() {
   
   const isCustomer = user?.role === 'customer'
   const isAdmin = user?.role === 'admin'
+  
+  // NEW: Check if we are on the home page
+  const isHome = pathname === '/' 
 
   return (
     <div className="flex min-h-screen flex-col relative">
-      <header className="bg-brand-dark text-white">
+      <header className="bg-black text-white sticky top-0 z-50 shadow-md">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-4">
           <Link to="/" className="py-4 text-xl font-bold">
             Crystal Chemicals
@@ -27,8 +30,6 @@ export default function Layout() {
           <NavLink to="/about" className={tab}>About us</NavLink>
           <NavLink to="/contact" className={tab}>Contact us</NavLink>
           
-          {/* The Assistant tab is removed from here */}
-
           {isCustomer && <NavLink to="/orders" className={tab}>My orders</NavLink>}
           {isAdmin && <NavLink to="/admin" className={tab}>Admin</NavLink>}
           <span className="flex-1" />
@@ -58,7 +59,8 @@ export default function Layout() {
         </nav>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      {/* FIXED: If it's the home page, remove the max-width and padding restrictions */}
+      <main className={isHome ? "w-full flex-1" : "mx-auto w-full max-w-6xl flex-1 px-4 py-8"}>
         <Outlet />
       </main>
 

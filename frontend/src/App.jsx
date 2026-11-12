@@ -4,6 +4,7 @@ import AdminProducts from "./admin/AdminProducts";
 import AdminOrders from "./admin/AdminOrders";
 import AdminMessages from "./admin/AdminMessages";
 import AdminChat from "./admin/AdminChat";
+import AdminProductEdit from "./admin/AdminProductEdit"; // <--- IMPORTED HERE
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -32,6 +33,9 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        
+        {/* ❌ REMOVED THE WRONG ROUTE FROM HERE */}
+
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
@@ -42,8 +46,6 @@ export default function App() {
         <Route path="/checkout" element={customer(<Checkout />)} />
         <Route path="/orders" element={customer(<Orders />)} />
         <Route path="/orders/:id" element={customer(<OrderDetail />)} />
-        
-        {/* ✅ MOVED HERE: The Customer Assistant route */}
         <Route path="/assistant" element={customer(<Assistant />)} />
 
         {/* --- ADMIN ROUTES --- */}
@@ -57,10 +59,12 @@ export default function App() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
+          
+          {/* ✅ ADDED IT HERE INSIDE THE ADMIN BLOCK */}
+          <Route path="products/:id" element={<AdminProductEdit />} /> 
+
           <Route path="orders" element={<AdminOrders />} />
           <Route path="messages" element={<AdminMessages />} />
-          
-          {/* Note: I changed this to 'assistant' to match your sidebar link */}
           <Route path="assistant" element={<AdminChat />} /> 
         </Route>
         

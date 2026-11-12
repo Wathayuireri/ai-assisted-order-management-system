@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { kes } from "../utils/format"; 
+import { Link } from 'react-router-dom'; // Make sure this is here!
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({ name: "", price: "", stock: "", description: "", category: "" });
+  const [formData, setFormData] = useState({ name: "", price: "", stock_quantity: "", description: "", category: "", pack_size: "", intended_use: "" });
 
   const fetchProducts = () => {
     api("/products/").then(res => setProducts(res || []));
@@ -13,17 +15,16 @@ export default function AdminProducts() {
 
   const handleAddProduct = (e) => {
     e.preventDefault();
-    // Pass method and body in the second argument
     api("/products/", { method: "POST", body: formData }).then(() => {
       fetchProducts();
-      setFormData({ name: "", price: "", stock: "", description: "", category: "" });
-    });
+      setFormData({ name: "", price: "", stock_quantity: "", description: "", category: "", pack_size: "", intended_use: "" });
+    }).catch(err => alert(err.message));
   };
 
   const handleUpdateStock = (id, newStock) => {
-    // Pass method and body in the second argument
-    api(`/products/${id}/`, { method: "PATCH", body: { stock: newStock } }).then(fetchProducts);
+    api(`/products/${id}/`, { method: "PATCH", body: { stock_quantity: newStock } }).then(fetchProducts);
   };
+  
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-slate-800">Product & Stock Management</h1>
@@ -40,7 +41,11 @@ export default function AdminProducts() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-          <input required type="number" className="border p-2 rounded w-full" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
+          <input required type="number" className="border p-2 rounded w-full" value={formData.stock_quantity} onChange={e => setFormData({...formData, stock_quantity: e.target.value})} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Pack Size</label>
+          <input required className="border p-2 rounded w-full" placeholder="e.g., 750ml" value={formData.pack_size} onChange={e => setFormData({...formData, pack_size: e.target.value})} />
         </div>
         <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
           Add Product
@@ -62,11 +67,21 @@ export default function AdminProducts() {
             {products.map(p => (
               <tr key={p.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="p-4 font-medium">{p.name}</td>
-                <td className="p-4">${p.price}</td>
+                <td className="p-4">{kes(p.price)}</td>
                 <td className="p-4">
-                  <input type="number" defaultValue={p.stock} onBlur={(e) => handleUpdateStock(p.id, e.target.value)} className="border p-1 w-20 rounded" />
+                  <input 
+                    type="number" 
+                    defaultValue={p.stock_quantity} 
+                    onBlur={(e) => handleUpdateStock(p.id, e.target.value)} 
+                    className="border p-1 w-20 rounded" 
+                  />
                 </td>
-                <td className="p-4 text-sm text-blue-600 cursor-pointer hover:underline">Edit details</td>
+                <td className="p-4 text-sm">
+                  {/* THIS IS THE FIX: Changed <a> to <Link> */}
+                  <Link to={`/admin/products/${p.id}`} className="text-blue-600 hover:underline">
+                    Edit details
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>
