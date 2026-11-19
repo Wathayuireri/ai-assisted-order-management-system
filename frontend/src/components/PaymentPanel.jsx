@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import Alert from './Alert'
 import { input, primary, secondary } from './ui'
 import { kes } from '../utils/format'
+import { useNavigate } from 'react-router-dom';
 
 export default function PaymentPanel({ order, onPaid }) {
   const { user } = useAuth()
@@ -11,6 +12,8 @@ export default function PaymentPanel({ order, onPaid }) {
   const [payment, setPayment] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  
+  const navigate = useNavigate(); // <--- Ensure this is here
 
   const simulated = payment?.checkout_request_id?.startsWith('SIM-')
   const pending = payment?.status === 'pending'
@@ -22,13 +25,16 @@ export default function PaymentPanel({ order, onPaid }) {
       try {
         const latest = await api(`/payments/${payment.id}/`)
         setPayment(latest)
-        if (latest.status === 'success') onPaid?.()
+        if (latest.status === 'success') {
+          onPaid?.()
+          navigate(`/receipt/${latest.id}`); // <--- REDIRECT TO RECEIPT
+        }
       } catch {
         /* keep waiting */
       }
     }, 3000)
     return () => clearInterval(timer)
-  }, [pending, simulated, payment?.id, onPaid])
+  }, [pending, simulated, payment?.id, onPaid, navigate])
 
   async function start(e) {
     e.preventDefault()
@@ -54,7 +60,10 @@ export default function PaymentPanel({ order, onPaid }) {
         body: { result },
       })
       setPayment(updated)
-      if (updated.status === 'success') onPaid?.()
+      if (updated.status === 'success') {
+        onPaid?.()
+        navigate(`/receipt/${updated.id}`); // <--- REDIRECT TO RECEIPT
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -68,7 +77,10 @@ export default function PaymentPanel({ order, onPaid }) {
     try {
       const updated = await api(`/payments/${payment.id}/check/`, { method: 'POST' })
       setPayment(updated)
-      if (updated.status === 'success') onPaid?.()
+      if (updated.status === 'success') {
+        onPaid?.()
+        navigate(`/receipt/${updated.id}`); // <--- REDIRECT TO RECEIPT
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -80,7 +92,9 @@ export default function PaymentPanel({ order, onPaid }) {
     return (
       <div className="rounded-xl bg-green-50 p-4 text-green-800">
         <p className="font-semibold">Payment received. Thank you!</p>
-        {payment.mpesa_receipt && <p className="text-sm">M-Pesa receipt: {payment.mpesa_receipt}</p>}
+        <button onClick={() => navigate(`/receipt/${payment.id}`)} className={`${primary} mt-3`}>
+          View Receipt
+        </button>
       </div>
     )
   }

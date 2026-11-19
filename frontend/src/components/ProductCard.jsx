@@ -9,10 +9,10 @@ export default function ProductCard({ product, role, busy, onAdd }) {
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4">
       <Link to={`/products/${product.id}`} className="block">
         
-        {/* UPDATED IMAGE LOGIC HERE */}
+        {/* FIXED: Removed the http prefix because the API already sends the full URL */}
         {product.image ? (
           <img 
-            src={`http://127.0.0.1:8000${product.image}`} 
+            src={product.image} 
             alt={product.name} 
             className="mb-3 h-28 w-full rounded-lg object-cover bg-gray-100" 
             onError={(e) => { 

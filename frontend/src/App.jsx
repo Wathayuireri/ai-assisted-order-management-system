@@ -21,6 +21,8 @@ import ProductDetail from './pages/ProductDetail'
 import Products from './pages/Products'
 import Register from './pages/Register'
 import Assistant from './pages/Assistant' 
+import Receipt from './pages/Receipt';
+
 
 function customer(element) {
   return <ProtectedRoute role="customer">{element}</ProtectedRoute>
@@ -44,6 +46,7 @@ export default function App() {
         {/* --- CUSTOMER ROUTES --- */}
         <Route path="/cart" element={customer(<Cart />)} />
         <Route path="/checkout" element={customer(<Checkout />)} />
+        <Route path="/receipt/:id" element={customer(<Receipt />)} />
         <Route path="/orders" element={customer(<Orders />)} />
         <Route path="/orders/:id" element={customer(<OrderDetail />)} />
         <Route path="/assistant" element={customer(<Assistant />)} />

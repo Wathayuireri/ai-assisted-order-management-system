@@ -265,7 +265,7 @@ class CreateStripeSessionView(APIView):
                 }],
                 mode='payment',
                 # When Stripe finishes, redirect back to React
-                success_url=f'http://localhost:5173/checkout?success=true&order_id={order.id}',
+                success_url=f'http://localhost:5173/checkout?success=true&payment_id={payment.id}',
                 cancel_url='http://localhost:5173/checkout?cancelled=true',
                 # This metadata is crucial for the webhook to find the payment
                 metadata={'payment_id': payment.id} 

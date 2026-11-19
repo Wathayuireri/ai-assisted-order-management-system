@@ -19,19 +19,17 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false)
   const [stripeBusy, setStripeBusy] = useState(false)
 
-  // State to control the popup and read the URL
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
-  // Check if Stripe redirected back with ?success=true
+  // Check if Stripe redirected back with ?success=true&payment_id=XYZ
   useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setShowSuccessPopup(true);
-      setPaid(true); 
-      
-      // Clean the URL so the popup doesn't appear again on refresh
-      navigate('/checkout', { replace: true }); 
+    const success = searchParams.get('success');
+    const paymentId = searchParams.get('payment_id');
+    
+    if (success === 'true' && paymentId) {
+      // Redirect to the receipt page!
+      navigate(`/receipt/${paymentId}`, { replace: true });
     }
   }, [searchParams, navigate]);
 
@@ -74,30 +72,6 @@ export default function Checkout() {
   return (
     <div className="mx-auto max-w-xl">
       
-      {/* SUCCESS POPUP MODAL */}
-      {showSuccessPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full text-center">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-              <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Payment Successful!</h2>
-            <p className="text-slate-600 mb-6">Your payment has been processed and your order has been received.</p>
-            <button 
-              onClick={() => {
-                setShowSuccessPopup(false);
-                navigate('/'); // Takes user back to home page
-              }}
-              className="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 px-4 rounded-lg transition-colors"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      )}
-
       {order ? (
         <div className="space-y-4">
           <div className={card}>
@@ -106,8 +80,10 @@ export default function Checkout() {
             <p>Total: <b>{kes(order.total_amount)}</b></p>
           </div>
           
+          {/* M-PESA Payment Panel */}
           <PaymentPanel order={order} onPaid={() => setPaid(true)} />
 
+          {/* Stripe Payment Button */}
           <div className={`${card} border-t-4 border-blue-500`}>
             <h3 className="font-bold text-lg mb-2">Pay with Card</h3>
             <p className="text-sm text-slate-600 mb-4">Secure payment powered by Stripe.</p>
