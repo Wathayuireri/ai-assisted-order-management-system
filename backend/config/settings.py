@@ -79,9 +79,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -95,8 +92,8 @@ DATABASES = {
 }
 DATABASES['readonly'] = {
     **DATABASES['default'],
-    'USER': os.getenv('DB_USER'),        # <-- Forces it to use your main user
-    'PASSWORD': os.getenv('DB_PASSWORD'),# <-- Forces it to use your main password
+    'USER': os.getenv('DB_USER'),        
+            'PASSWORD': os.getenv('DB_PASSWORD'),
     'TEST': {'MIRROR': 'default'},
 }
 AUTH_USER_MODEL = 'accounts.User'
@@ -104,8 +101,6 @@ AUTH_USER_MODEL = 'accounts.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Password validation
-# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

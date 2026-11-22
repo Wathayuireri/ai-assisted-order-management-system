@@ -33,35 +33,18 @@ export default function Contact() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      {/* CONTACT DETAILS SECTION (From your screenshot) */}
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-bold text-slate-800 mb-4">Contact Us</h1>
-        <p className="text-lg text-slate-600 mb-8 max-w-2xl">
-          If you have any questions or need further information, please feel free to contact us or send us a message.
+    <div className="mx-auto max-w-4xl pt-8">
+      
+      {/* Friendly Intro Text */}
+      <div className="mb-10 text-center">
+        <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
+          For any questions or further information, please feel free to send us a message below, or reach out to us directly.
         </p>
-        
-        <div className="grid gap-6 sm:grid-cols-2 bg-slate-50 p-6 rounded-xl border border-slate-200">
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">Location:</h3>
-            <p className="text-slate-700 mt-1">Crystal Building, Mai Mahiu Road,<br/>Opposite T-mall, Nairobi</p>
-            
-            <h3 className="text-lg font-bold text-slate-800 mt-6">Mobile:</h3>
-            <p className="text-slate-700 mt-1">+254 725 095 477</p>
-            <p className="text-slate-700">+254 716 259 355</p>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">Email:</h3>
-            <a href="mailto:sales@crystalchemical.co.ke" className="text-blue-600 hover:underline mt-1 block">
-              sales@crystalchemical.co.ke
-            </a>
-          </div>
-        </div>
       </div>
 
       {/* CONTACT FORM */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold mb-1">Send us a message</h2>
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-10">
+        <h2 className="text-2xl font-bold mb-1 text-slate-800">Send us a message</h2>
         <p className="text-slate-600 mb-6">Send a question, complaint or compliment to our managers.</p>
         
         <form onSubmit={submit} className="space-y-4">
@@ -85,6 +68,25 @@ export default function Contact() {
           </button>
         </form>
       </div>
+
+      {/* CONTACT DETAILS */}
+      <div className="grid gap-6 sm:grid-cols-2 bg-slate-50 p-8 rounded-xl border border-slate-200">
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 mb-4">Or please call us:</h3>
+          <p className="text-slate-700 font-medium text-lg">+254 725 095 477</p>
+          <p className="text-slate-700 font-medium text-lg">+254 716 259 355</p>
+          
+          <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">Visit our office:</h3>
+          <p className="text-slate-700">Crystal Building, Mai Mahiu Road,<br/>Opposite T-mall, Nairobi</p>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 mb-4">Or email us at:</h3>
+          <a href="mailto:sales@crystalchemical.co.ke" className="text-blue-600 hover:underline font-medium text-lg">
+            sales@crystalchemical.co.ke
+          </a>
+        </div>
+      </div>
+
     </div>
   )
 }

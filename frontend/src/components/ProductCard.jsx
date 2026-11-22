@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { kes } from '../utils/format'
-import StockTag from './StockTag'
 import { primary } from './ui'
 
 export default function ProductCard({ product, role, busy, onAdd }) {
@@ -9,7 +8,6 @@ export default function ProductCard({ product, role, busy, onAdd }) {
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4">
       <Link to={`/products/${product.id}`} className="block">
         
-        {/* FIXED: Removed the http prefix because the API already sends the full URL */}
         {product.image ? (
           <img 
             src={product.image} 
@@ -29,10 +27,17 @@ export default function ProductCard({ product, role, busy, onAdd }) {
         <p className="font-semibold">{product.name}</p>
       </Link>
       <p className="text-sm text-slate-600">{product.pack_size}</p>
+      
       <div className="my-3 flex items-center justify-between">
         <b>{kes(product.price)}</b>
-        <StockTag product={product} />
+        {/* Shows ONLY if out of stock */}
+        {out && (
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+            Out of Stock
+          </span>
+        )}
       </div>
+
       {role !== 'admin' && (
         <button
           disabled={out || busy}

@@ -22,7 +22,8 @@ import Products from './pages/Products'
 import Register from './pages/Register'
 import Assistant from './pages/Assistant' 
 import Receipt from './pages/Receipt';
-
+import Payments from './pages/Payments';
+import PaymentWait from './pages/PaymentWait';
 
 function customer(element) {
   return <ProtectedRoute role="customer">{element}</ProtectedRoute>
@@ -50,6 +51,8 @@ export default function App() {
         <Route path="/orders" element={customer(<Orders />)} />
         <Route path="/orders/:id" element={customer(<OrderDetail />)} />
         <Route path="/assistant" element={customer(<Assistant />)} />
+        <Route path="/payments" element={customer(<Payments />)} />
+<Route path="/payment/:id" element={customer(<PaymentWait />)} />
 
         {/* --- ADMIN ROUTES --- */}
         <Route 
