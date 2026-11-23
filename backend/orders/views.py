@@ -15,7 +15,6 @@ from .models import Order, OrderItem, OrderStatusHistory
 from .serializers import (AdminOrderSerializer, CheckoutSerializer,
                           OrderSerializer, StatusUpdateSerializer)
 
-# The only status changes that are allowed.
 ALLOWED_TRANSITIONS = {
     'placed': ['confirmed', 'cancelled'],
     'confirmed': ['processing', 'cancelled'],
@@ -81,6 +80,7 @@ class CheckoutView(APIView):
         order = Order.objects.create(
             user=user,
             contact_phone=data['contact_phone'],
+            delivery_location=data.get('delivery_location', ''), # <-- ADDED
             notes=data.get('notes', ''),
             total_amount=Decimal('0.00'),
         )
@@ -102,8 +102,8 @@ class CheckoutView(APIView):
             total += line_total
 
         order.total_amount = total
-        order.reference = f'CC-{1000 + order.pk}'
-        order.save(update_fields=['total_amount', 'reference', 'updated_at'])
+        # Remove the reference override since the model now generates it automatically
+        order.save(update_fields=['total_amount', 'updated_at'])
 
         OrderStatusHistory.objects.create(order=order, status='placed', changed_by=user)
         cart.items.all().delete()
@@ -111,7 +111,6 @@ class CheckoutView(APIView):
 
 
 class MyOrderListView(generics.ListAPIView):
-    """A customer's own orders, newest first."""
     permission_classes = [IsCustomer]
     serializer_class = OrderSerializer
 
@@ -131,7 +130,6 @@ class OrderDetailView(APIView):
 
 
 class AdminOrderListView(generics.ListAPIView):
-    """All orders, with filters: ?status=, ?customer_type=, ?search="""
     permission_classes = [IsAdminRole]
     serializer_class = AdminOrderSerializer
 
@@ -170,12 +168,13 @@ class AdminOrderDetailView(generics.RetrieveAPIView):
 
 
 class AdminOrderStatusView(APIView):
-    """Moves an order along its path, and returns stock if it is cancelled."""
     permission_classes = [IsAdminRole]
 
     def patch(self, request, pk):
         serializer = StatusUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         new_status = serializer.validated_data['status']
 
         with transaction.atomic():
@@ -185,8 +184,7 @@ class AdminOrderStatusView(APIView):
             if new_status not in allowed:
                 return Response(
                     {'detail': (f'An order that is {order.get_status_display().lower()} '
-                                f'cannot be changed to {new_status}.'),
-                     'allowed': allowed},
+                                f'cannot be changed to {new_status}.'), 'allowed': allowed},
                     status=status.HTTP_400_BAD_REQUEST)
 
             if new_status == 'cancelled':

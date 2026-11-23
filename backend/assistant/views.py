@@ -30,14 +30,15 @@ class BaseAssistantView(APIView):
         history = serializer.validated_data.get('history', [])
 
         try:
+            # Reverted: Removed the user parameter
             result = type(self).reply_function(message, history)
         except AIError:
             logger.exception('AI request failed')
             return Response({'detail': UNAVAILABLE}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        #AIConversationLog.objects.create(
-            #user=request.user, assistant=self.assistant,
-            #question=message, answer=result['answer'])
+        # AIConversationLog.objects.create(
+        #     user=request.user, assistant=self.assistant,
+        #     question=message, answer=result['answer'])
         return Response({**result, 'ai_generated': True})
 
 

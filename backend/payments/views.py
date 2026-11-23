@@ -33,6 +33,7 @@ class StartPaymentView(APIView):
     def post(self, request):
         phone = request.data.get('mpesa_phone')
         notes = request.data.get('notes', '')
+        delivery_location = request.data.get('delivery_location', '') # <-- ADDED
         
         try:
             cart = Cart.objects.get(user=request.user)
@@ -47,8 +48,9 @@ class StartPaymentView(APIView):
                 order = Order.objects.create(
                     user=request.user,
                     reference=f"TEMP-{uuid.uuid4().hex[:6].upper()}",
-                    status='pending',
+                    status='placed',
                     contact_phone=phone,
+                    delivery_location=delivery_location, # <-- ADDED
                     notes=notes,
                     total_amount=total_amount
                 )
@@ -130,6 +132,7 @@ class CreateStripeSessionView(APIView):
 
     def post(self, request):
         notes = request.data.get('notes', '')
+        delivery_location = request.data.get('delivery_location', '') # <-- ADDED
         try:
             cart = Cart.objects.get(user=request.user)
             cart_items = cart.items.all()
@@ -141,7 +144,9 @@ class CreateStripeSessionView(APIView):
             with transaction.atomic():
                 order = Order.objects.create(
                     user=request.user, reference=f"TEMP-{uuid.uuid4().hex[:6].upper()}",
-                    status='pending', contact_phone='CARD', notes=notes, total_amount=total_amount
+                    status='placed', contact_phone='CARD', 
+                    delivery_location=delivery_location, # <-- ADDED
+                    notes=notes, total_amount=total_amount
                 )
                 for item in cart_items:
                     OrderItem.objects.create(
@@ -260,3 +265,30 @@ class AdminPaymentListView(generics.ListAPIView):
         if status_value in dict(Payment.STATUS_CHOICES):
             queryset = queryset.filter(status=status_value)
         return queryset
+
+# --- 6. NEW ADMIN MANUAL PAYMENT UPDATE ---
+class AdminUpdatePaymentStatusView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def patch(self, request, pk):
+        payment = get_object_or_404(Payment, pk=pk)
+        new_status = request.data.get('status')
+
+        if new_status not in ['success', 'failed']:
+            return Response({'detail': 'Invalid status. Use "success" or "failed".'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            payment.status = new_status
+            payment.result_description = 'Manually updated by Admin'
+            payment.completed_at = timezone.now()
+            payment.save()
+
+            if new_status == 'success':
+                # FIX: Change TEMP- reference to CC- if admin manually marks it paid
+                if payment.order.reference.startswith('TEMP-'):
+                    payment.order.reference = f"CC-{uuid.uuid4().hex[:4].upper()}"
+                    payment.order.save()
+                    
+                Cart.objects.filter(user=payment.order.user).delete()
+
+        return Response(PaymentSerializer(payment).data)

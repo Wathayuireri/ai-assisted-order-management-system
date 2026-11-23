@@ -1,8 +1,10 @@
+import uuid
 from django.conf import settings
 from django.db import models
-
 from catalogue.models import Product
 
+def generate_order_reference():
+    return f"CC-{uuid.uuid4().hex[:4].upper()}"
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -15,11 +17,12 @@ class Order(models.Model):
     ]
 
     reference = models.CharField(
-        max_length=20, unique=True, null=True, blank=True, editable=False)
+        max_length=20, unique=True, null=True, blank=True, editable=False, default=generate_order_reference)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='orders')
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='placed')
     contact_phone = models.CharField(max_length=15)
+    delivery_location = models.CharField(max_length=255, default='', blank=True)  # <-- ADDED
     notes = models.TextField(blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)

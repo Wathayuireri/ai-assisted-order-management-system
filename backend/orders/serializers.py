@@ -1,14 +1,12 @@
 import re
-
 from rest_framework import serializers
-
 from .models import Order, OrderItem, OrderStatusHistory
 
 PHONE_PATTERN = re.compile(r'^(?:\+?254|0)\d{9}$')
 
-
 class CheckoutSerializer(serializers.Serializer):
     contact_phone = serializers.CharField(max_length=15)
+    delivery_location = serializers.CharField(max_length=255) # <-- ADDED
     notes = serializers.CharField(required=False, allow_blank=True, max_length=500)
 
     def validate_contact_phone(self, value):
@@ -18,12 +16,10 @@ class CheckoutSerializer(serializers.Serializer):
                 'Enter a valid Kenyan phone number, for example 0712345678.')
         return phone
 
-
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['id', 'product', 'product_name', 'quantity', 'unit_price', 'line_total']
-
 
 class OrderStatusHistorySerializer(serializers.ModelSerializer):
     status_label = serializers.CharField(source='get_status_display', read_only=True)
@@ -32,19 +28,19 @@ class OrderStatusHistorySerializer(serializers.ModelSerializer):
         model = OrderStatusHistory
         fields = ['status', 'status_label', 'changed_at']
 
-
 class OrderSerializer(serializers.ModelSerializer):
     status_label = serializers.CharField(source='get_status_display', read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     history = OrderStatusHistorySerializer(many=True, read_only=True)
     payment_status = serializers.SerializerMethodField()
     is_paid = serializers.SerializerMethodField()
+    payment_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'reference', 'status', 'status_label', 'contact_phone',
-                  'notes', 'total_amount', 'created_at', 'payment_status',
-                  'is_paid', 'items', 'history']
+                  'delivery_location', 'notes', 'total_amount', 'created_at', # <-- ADDED
+                  'payment_status', 'is_paid', 'payment_id', 'items', 'history']
 
     def get_payment_status(self, obj):
         payments = list(obj.payments.all())
@@ -58,6 +54,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_is_paid(self, obj):
         return self.get_payment_status(obj) == 'paid'
+
+    def get_payment_id(self, obj):
+        payment = obj.payments.order_by('-created_at').first()
+        return payment.id if payment else None
 
 class AdminOrderSerializer(OrderSerializer):
     customer = serializers.SerializerMethodField()
@@ -76,7 +76,6 @@ class AdminOrderSerializer(OrderSerializer):
             'customer_type': profile.customer_type if profile else None,
             'company_name': profile.company_name if profile else '',
         }
-
 
 class StatusUpdateSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Order.STATUS_CHOICES)
