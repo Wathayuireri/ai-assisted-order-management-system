@@ -13,21 +13,20 @@ export default function Checkout() {
   const navigate = useNavigate()
   
   const [phone, setPhone] = useState(user?.phone || '')
+  const [deliveryLocation, setDeliveryLocation] = useState('') // <-- ADDED
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [searchParams] = useSearchParams()
 
-  // Handle Stripe Redirect Success
   useEffect(() => {
     const success = searchParams.get('success')
     const paymentId = searchParams.get('payment_id')
     
     if (success === 'true' && paymentId) {
-      // Fetch payment details to get the ORDER ID
       api(`/payments/${paymentId}/`)
         .then((paymentData) => {
-          refresh() // Clear cart immediately
+          refresh()
           navigate(`/receipt/${paymentData.order}`, { replace: true })
         })
         .catch((err) => {
@@ -48,9 +47,19 @@ export default function Checkout() {
       return
     }
 
+    if (!deliveryLocation) {
+      setError("Please provide a delivery location.")
+      setBusy(false)
+      return
+    }
+
     try {
       navigate('/payments', { 
-        state: { phone: phone, notes: notes } 
+        state: { 
+          phone: phone, 
+          delivery_location: deliveryLocation, // <-- ADDED
+          notes: notes 
+        } 
       })
     } catch (err) {
       setError(err.message)
@@ -94,6 +103,18 @@ export default function Checkout() {
             placeholder="0712345678" 
             value={phone}
             onChange={(e) => setPhone(e.target.value)} 
+            className={input} 
+          />
+        </div>
+
+        <div>
+          <label htmlFor="deliveryLocation" className="text-sm font-medium">Delivery Location</label>
+          <input 
+            id="deliveryLocation" 
+            required 
+            placeholder="e.g., Westlands, Nairobi" 
+            value={deliveryLocation}
+            onChange={(e) => setDeliveryLocation(e.target.value)} 
             className={input} 
           />
         </div>

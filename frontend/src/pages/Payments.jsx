@@ -11,8 +11,8 @@ export default function Payments() {
   const navigate = useNavigate()
   const location = useLocation()
   
-  // Get phone and notes passed from Checkout page
-  const { phone, notes } = location.state || {}
+  // Get phone, notes, and delivery_location passed from Checkout page
+  const { phone, delivery_location, notes } = location.state || {}
   
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -29,15 +29,16 @@ export default function Payments() {
     setError('')
     setBusy(true)
     try {
-      // This creates the TEMPORARY order in the backend
       const res = await api('/payments/start/', {
         method: 'POST',
-        body: { mpesa_phone: phone, notes: notes }
+        body: { 
+          mpesa_phone: phone, 
+          delivery_location: delivery_location, // <-- ADDED
+          notes: notes 
+        }
       })
       
-      await refresh() // Clear local cart state
-      
-      // Redirect to the waiting page where they enter their PIN
+      await refresh() 
       navigate(`/payment/${res.order_id}`)
     } catch (err) {
       setError(err.message || 'Failed to start M-PESA payment')
@@ -50,13 +51,14 @@ export default function Payments() {
     setError('')
     setBusy(true)
     try {
-      // This creates the TEMPORARY order in the backend
       const res = await api('/payments/stripe/create-session/', {
         method: 'POST',
-        body: { notes: notes }
+        body: { 
+          delivery_location: delivery_location, // <-- ADDED
+          notes: notes 
+        }
       })
       
-      // Redirect to Stripe hosted checkout
       if (res.url) {
         window.location.href = res.url
       }
@@ -75,6 +77,7 @@ export default function Payments() {
       <div className={`${card} mb-6`}>
         <h2 className="font-bold text-lg mb-2">Order Summary</h2>
         <p className="text-sm text-gray-600">Phone: {phone}</p>
+        <p className="text-sm text-gray-600">Deliver to: {delivery_location}</p> {/* <-- ADDED */}
         <p className="text-sm text-gray-600">Notes: {notes || 'None'}</p>
         <div className="border-t mt-2 pt-2 flex justify-between font-bold">
           <span>Total to Pay:</span>
@@ -85,7 +88,6 @@ export default function Payments() {
       <Alert>{error}</Alert>
 
       <div className="space-y-4">
-        {/* M-PESA Option */}
         <button 
           onClick={payWithMpesa} 
           disabled={busy}
@@ -94,7 +96,6 @@ export default function Payments() {
           {busy ? 'Processing...' : 'Pay with M-PESA'}
         </button>
 
-        {/* Stripe Option */}
         <button 
           onClick={payWithStripe} 
           disabled={busy}

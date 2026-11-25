@@ -4,7 +4,8 @@ import AdminProducts from "./admin/AdminProducts";
 import AdminOrders from "./admin/AdminOrders";
 import AdminMessages from "./admin/AdminMessages";
 import AdminChat from "./admin/AdminChat";
-import AdminProductEdit from "./admin/AdminProductEdit"; // <--- IMPORTED HERE
+import AdminProductEdit from "./admin/AdminProductEdit"; 
+import AdminOrderDetail from "./admin/AdminOrderDetail"; // ✅ ADDED IMPORT
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -37,8 +38,6 @@ export default function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         
-        {/* ❌ REMOVED THE WRONG ROUTE FROM HERE */}
-
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
@@ -52,7 +51,7 @@ export default function App() {
         <Route path="/orders/:id" element={customer(<OrderDetail />)} />
         <Route path="/assistant" element={customer(<Assistant />)} />
         <Route path="/payments" element={customer(<Payments />)} />
-<Route path="/payment/:id" element={customer(<PaymentWait />)} />
+        <Route path="/payment/:id" element={customer(<PaymentWait />)} />
 
         {/* --- ADMIN ROUTES --- */}
         <Route 
@@ -65,11 +64,12 @@ export default function App() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
-          
-          {/* ✅ ADDED IT HERE INSIDE THE ADMIN BLOCK */}
           <Route path="products/:id" element={<AdminProductEdit />} /> 
 
           <Route path="orders" element={<AdminOrders />} />
+          {/* ✅ ADDED ADMIN ORDER DETAIL ROUTE HERE */}
+          <Route path="orders/:id" element={<AdminOrderDetail />} /> 
+
           <Route path="messages" element={<AdminMessages />} />
           <Route path="assistant" element={<AdminChat />} /> 
         </Route>

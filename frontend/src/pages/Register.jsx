@@ -63,13 +63,7 @@ export default function Register() {
             onChange={set('password')} className={input} />
           <p className="mt-1 text-xs text-slate-600">At least 8 characters, not only numbers.</p>
         </div>
-        <div>
-          <label htmlFor="type" className="text-sm font-medium">I am ordering as</label>
-          <select id="type" value={form.customer_type} onChange={set('customer_type')} className={input}>
-            <option value="individual">An individual</option>
-            <option value="business">A business or institution</option>
-          </select>
-        </div>
+        
         {form.customer_type === 'business' && (
           <div>
             <label htmlFor="company" className="text-sm font-medium">Business or organisation name</label>
